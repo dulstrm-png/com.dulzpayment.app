@@ -1,4 +1,4 @@
-name: Build DulzPayment APK
+name: DulzPayment APK
 
 on:
   workflow_dispatch:
@@ -6,15 +6,12 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout ZIP Project
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -23,7 +20,7 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -33,16 +30,14 @@ jobs:
           npm init -y
           npm install @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
 
-      - name: Prepare Web App
+      - name: Prepare Web
         run: |
-          rm -rf www
           mkdir -p www/icons
-
-          cp index.html www/
-          cp style.css www/
-          cp app.js www/
-          cp manifest.webmanifest www/
-          cp icons/icon.svg www/icons/
+          cp index.html www/index.html
+          cp style.css www/style.css
+          cp app.js www/app.js
+          cp manifest.webmanifest www/manifest.webmanifest
+          cp icons/icon.svg www/icons/icon.svg
 
       - name: Create Capacitor Config
         run: |
@@ -61,8 +56,10 @@ jobs:
         run: npx cap sync android
 
       - name: Build APK
-        working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
