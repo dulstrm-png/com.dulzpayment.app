@@ -19,29 +19,46 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Capacitor
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Create Web Folder
+        run: |
+          mkdir -p www/icons
+          cp index.html www/
+          cp style.css www/
+          cp app.js www/
+          cp manifest.webmanifest www/
+          cp icons/icon.svg www/icons/
+
+      - name: Initialize Capacitor
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Create Capacitor config
+      - name: Create Capacitor Config
         run: |
           cat > capacitor.config.json <<'EOF'
           {
             "appId": "com.dulzpayment.app",
             "appName": "DulzPayment",
-            "webDir": ".",
-            "bundledWebRuntime": false
+            "webDir": "www"
           }
           EOF
 
       - name: Add Android
         run: npx cap add android
 
-      - name: Sync web files
+      - name: Copy Web Assets
+        run: npx cap copy android
+
+      - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build APK
+      - name: Build Debug APK
         working-directory: android
         run: ./gradlew assembleDebug
 
